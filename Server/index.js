@@ -5,7 +5,13 @@ const { Server } = require("socket.io");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://watch-party-1-88o7.onrender.com",
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 
 // ================= HTTP SERVER =================
@@ -16,8 +22,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-   origin: process.env.CLIENT_URL || "*",
+    origin: [
+      "http://localhost:5173",
+      "https://watch-party-1-88o7.onrender.com",
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
