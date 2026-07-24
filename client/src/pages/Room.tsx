@@ -2,84 +2,84 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import YouTube from "react-youtube";
 import { socket } from "../services/socket";
-
+ 
 interface Participant {
   id: string;
   username: string;
   role: string;
 }
-
+ 
 interface ChatMessage {
   username: string;
   message: string;
   time: string;
 }
-
+ 
 function Room() {
   const { roomId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-
+ 
   const username = location.state?.username || "Guest";
-
+ 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [showParticipants, setShowParticipants] = useState(false);
-
+ 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+ 
   const [videoId, setVideoId] = useState("dQw4w9WgXcQ");
   const [videoUrl, setVideoUrl] = useState("");
-
+ 
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [micOn, setMicOn] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
   const [remoteStreams] = useState<MediaStream[]>([]);
-
+ 
   const [videoMuted, setVideoMuted] = useState(false);
   const [volume, setVolume] = useState(100);
-
+ 
   const hasJoinedRef = useRef(false);
   const playerRef = useRef<any>(null);
   const ignoreNextEvent = useRef(false);
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
-
+ 
   const onReady = (event: any) => {
     playerRef.current = event.target;
   };
-
+ 
   const startVoiceChat = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setLocalStream(stream);
       setMicOn(true);
-
+ 
       peerConnection.current = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
-
+ 
       stream.getTracks().forEach((track) => {
         peerConnection.current?.addTrack(track, stream);
       });
-
+ 
       peerConnection.current.ontrack = (event) => {
         const remoteStream = event.streams[0];
         if (remoteAudioRef.current) {
           remoteAudioRef.current.srcObject = remoteStream;
         }
       };
-
+ 
       peerConnection.current.onicecandidate = (event) => {
         if (event.candidate) {
           socket.emit("voice-candidate", { roomId, candidate: event.candidate });
         }
       };
-
+ 
       socket.emit("voice-join", { roomId });
     } catch (err: any) {
       console.error(err);
@@ -92,7 +92,7 @@ function Room() {
       }
     }
   };
-
+ 
   const startVideoCall = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -107,19 +107,19 @@ function Room() {
       alert("❌ Camera access denied: " + err.message);
     }
   };
-
+ 
   const toggleMic = () => {
     if (!localStream) return;
     localStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
     setMicOn((prev) => !prev);
   };
-
+ 
   const toggleCamera = () => {
     if (!localStream) return;
     localStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
     setCameraOn((prev) => !prev);
   };
-
+ 
   const leaveVoiceChat = () => {
     if (localStream) {
       localStream.getTracks().forEach((track) => track.stop());
@@ -132,13 +132,13 @@ function Room() {
     setMicOn(false);
     setCameraOn(false);
   };
-
+ 
   const leaveRoom = () => {
     leaveVoiceChat();
     socket.emit("leave-room", { roomId });
     navigate("/");
   };
-
+ 
   const toggleVideoMute = () => {
     const newMuted = !videoMuted;
     setVideoMuted(newMuted);
@@ -147,13 +147,13 @@ function Room() {
     }
     socket.emit("mute-toggle", { roomId, muted: newMuted });
   };
-
+ 
   const handleVolumeChange = (value: number) => {
     setVolume(value);
     if (playerRef.current) playerRef.current.setVolume(value);
     socket.emit("volume-change", { roomId, volume: value });
   };
-
+ 
   const handleTyping = (value: string) => {
     setMessage(value);
     socket.emit("typing", { roomId, username });
@@ -162,116 +162,116 @@ function Room() {
       socket.emit("stop-typing", { roomId, username });
     }, 1200);
   };
-
+ 
   const sendMessage = () => {
     if (!message.trim()) return;
     socket.emit("send-message", { roomId, username, message });
     socket.emit("stop-typing", { roomId, username });
     setMessage("");
   };
-
+ 
   // 🆕 ================= ROLE MANAGEMENT (Host only) =================
-
+ 
   const promoteToModerator = (userId: string) => {
     socket.emit("assign-role", { roomId, userId, role: "Moderator" });
   };
-
+ 
   const demoteToParticipant = (userId: string) => {
     socket.emit("assign-role", { roomId, userId, role: "Participant" });
   };
-
+ 
   const removeParticipant = (userId: string, targetUsername: string) => {
     if (!confirm(`${targetUsername} ko room se remove karna hai?`)) return;
     socket.emit("remove-participant", { roomId, userId });
   };
-
+ 
   useEffect(() => {
     if (!hasJoinedRef.current) {
       socket.emit("join-room", { roomId, username });
       hasJoinedRef.current = true;
     }
-
+ 
     const handleParticipantsUpdate = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
-
+ 
     const handlePlay = (data: any) => {
       if (!playerRef.current) return;
       ignoreNextEvent.current = true;
       playerRef.current.seekTo(data.currentTime || 0, true);
       playerRef.current.playVideo();
     };
-
+ 
     const handlePause = (data: any) => {
       if (!playerRef.current) return;
       ignoreNextEvent.current = true;
       playerRef.current.seekTo(data.currentTime || 0, true);
       playerRef.current.pauseVideo();
     };
-
+ 
     const handleSeek = (data: any) => {
       if (!playerRef.current) return;
       ignoreNextEvent.current = true;
       playerRef.current.seekTo(data.currentTime || 0, true);
     };
-
+ 
     const handleVideoState = (state: any) => {
       if (!playerRef.current) return;
       playerRef.current.seekTo(state.currentTime || 0, true);
       state.isPlaying ? playerRef.current.playVideo() : playerRef.current.pauseVideo();
     };
-
+ 
     const handleReceiveMessage = (data: ChatMessage) => {
       setMessages((prev) => [...prev, data]);
     };
-
+ 
     const handleVideoChanged = (data: { videoId: string }) => {
       setVideoId(data.videoId);
     };
-
+ 
     const handleSyncMute = ({ muted }: { muted: boolean }) => {
       setVideoMuted(muted);
       if (playerRef.current) {
         muted ? playerRef.current.mute() : playerRef.current.unMute();
       }
     };
-
+ 
     const handleSyncVolume = ({ volume }: { volume: number }) => {
       setVolume(volume);
       if (playerRef.current) playerRef.current.setVolume(volume);
     };
-
+ 
     const handleUserTyping = ({ username: who }: { username: string }) => {
       setTypingUser(who);
     };
     const handleUserStopTyping = () => {
       setTypingUser(null);
     };
-
+ 
     // 🆕 role assigned -> refresh participants list
     const handleRoleAssigned = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
-
+ 
     // 🆕 someone was removed -> refresh participants list
     const handleParticipantRemoved = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
-
+ 
     // 🆕 I was removed by the host -> kick myself out
     const handleRemovedFromRoom = () => {
       alert("🚫 Host ne tumhe is room se remove kar diya hai.");
       leaveVoiceChat();
       navigate("/");
     };
-
+ 
     socket.on("voice-user-joined", async () => {
       if (!peerConnection.current) return;
       const offer = await peerConnection.current.createOffer();
       await peerConnection.current.setLocalDescription(offer);
       socket.emit("voice-offer", { roomId, offer });
     });
-
+ 
     socket.on("voice-offer", async ({ offer }) => {
       if (!peerConnection.current) return;
       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
@@ -279,12 +279,12 @@ function Room() {
       await peerConnection.current.setLocalDescription(answer);
       socket.emit("voice-answer", { roomId, answer });
     });
-
+ 
     socket.on("voice-answer", async ({ answer }) => {
       if (!peerConnection.current) return;
       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
     });
-
+ 
     socket.on("voice-candidate", async ({ candidate }) => {
       if (!peerConnection.current) return;
       try {
@@ -293,11 +293,11 @@ function Room() {
         console.log(err);
       }
     });
-
+ 
     socket.on("voice-user-left", () => {
       console.log("🎤 User Left Voice Chat");
     });
-
+ 
     socket.on("participants-update", handleParticipantsUpdate);
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
@@ -312,7 +312,7 @@ function Room() {
     socket.on("role-assigned", handleRoleAssigned);
     socket.on("participant-removed", handleParticipantRemoved);
     socket.on("removed-from-room", handleRemovedFromRoom);
-
+ 
     return () => {
       socket.off("participants-update", handleParticipantsUpdate);
       socket.off("play", handlePlay);
@@ -328,7 +328,7 @@ function Room() {
       socket.off("role-assigned", handleRoleAssigned);
       socket.off("participant-removed", handleParticipantRemoved);
       socket.off("removed-from-room", handleRemovedFromRoom);
-
+ 
       socket.off("voice-user-joined");
       socket.off("voice-offer");
       socket.off("voice-answer");
@@ -337,16 +337,16 @@ function Room() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, username]);
-
+ 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typingUser]);
-
+ 
   const me = participants.find((user) => user.username === username);
   const isHost = me?.role === "Host";
   const isModerator = me?.role === "Moderator";
   const canControl = isHost || isModerator; // 🆕 Host aur Moderator dono control kar sakte hain
-
+ 
   const copyRoomLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -355,10 +355,10 @@ function Room() {
       alert("❌ Failed to Copy Link");
     }
   };
-
+ 
   const handleChangeVideo = () => {
     if (!videoUrl.trim()) return;
-
+ 
     let id = "";
     if (videoUrl.includes("watch?v=")) {
       id = videoUrl.split("watch?v=")[1].split("&")[0];
@@ -368,12 +368,12 @@ function Room() {
       alert("❌ Invalid YouTube URL");
       return;
     }
-
+ 
     setVideoId(id);
     socket.emit("change-video", { roomId, videoId: id });
     setVideoUrl("");
   };
-
+ 
   return (
     <div className="h-screen w-screen flex flex-col bg-black text-gray-100 overflow-hidden">
       {/* ===== TOP NAVBAR ===== */}
@@ -385,7 +385,7 @@ function Room() {
             Room #{roomId?.slice(0, 8)}
           </span>
         </div>
-
+ 
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-300 hidden md:inline">
             {isHost ? "👑" : isModerator ? "🛡️" : "👤"} <b>{username}</b>
@@ -404,7 +404,7 @@ function Room() {
           </button>
         </div>
       </header>
-
+ 
       {/* ===== MAIN AREA ===== */}
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-6 p-6 overflow-hidden">
         {/* ===== LEFT CARD: Video + Controls ===== */}
@@ -428,7 +428,7 @@ function Room() {
               </button>
             </div>
           )}
-
+ 
           <div className="w-full rounded-2xl overflow-hidden bg-black shadow-lg aspect-video border border-white/10">
             <YouTube
               videoId={videoId}
@@ -466,7 +466,7 @@ function Room() {
               className="w-full h-full"
             />
           </div>
-
+ 
           {/* Volume row */}
           <div className="flex items-center gap-3 mt-4 bg-[#0f0f16] border border-white/15 rounded-xl px-4 py-3 w-fit">
             <button onClick={toggleVideoMute} className="text-lg">
@@ -482,7 +482,7 @@ function Room() {
             />
             <span className="text-xs text-gray-400 w-8">{volume}%</span>
           </div>
-
+ 
           {/* Bottom pill controls */}
           <div className="flex items-center flex-wrap justify-center gap-2 mt-4 bg-[#0f0f16] border border-white/15 rounded-full px-5 py-3 mx-auto shadow-md">
             <PillButton onClick={startVoiceChat} label="Voice Chat" icon="🎙️" color="blue" />
@@ -491,9 +491,9 @@ function Room() {
             <PillButton onClick={toggleCamera} label={cameraOn ? "Camera ON" : "Camera OFF"} icon={cameraOn ? "📹" : "📷"} color={cameraOn ? "green" : "red"} />
             <PillButton onClick={leaveVoiceChat} label="Leave Call" icon="🔌" color="red" />
           </div>
-
+ 
           <audio ref={remoteAudioRef} autoPlay />
-
+ 
           {cameraOn && (
             <div className="mt-4 flex justify-center">
               <video
@@ -505,7 +505,7 @@ function Room() {
               />
             </div>
           )}
-
+ 
           {remoteStreams.length > 0 && (
             <div className="mt-4">
               <h3 className="text-sm font-semibold text-gray-400 mb-2">📹 Connected Users</h3>
@@ -525,7 +525,7 @@ function Room() {
             </div>
           )}
         </div>
-
+ 
         {/* ===== RIGHT CARD: Chat / Participants ===== */}
         <div className="w-full lg:w-[380px] flex flex-col bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 shrink-0 min-h-0 overflow-hidden">
           <div className="flex border-b border-white/15 shrink-0">
@@ -546,7 +546,7 @@ function Room() {
               👥 Participants ({participants.length})
             </button>
           </div>
-
+ 
           {showParticipants ? (
             // 🆕 Participants list with Host-only role management controls
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -560,7 +560,7 @@ function Room() {
                     <span className="font-medium">{user.username}</span>
                     <span className="text-xs text-gray-500 ml-auto">{user.role}</span>
                   </div>
-
+ 
                   {/* 🆕 Host ko har participant/moderator (khud ko chhodkar) ke neeche action buttons dikhte hain */}
                   {isHost && user.role !== "Host" && (
                     <div className="flex gap-2 pt-1 border-t border-white/5">
@@ -616,11 +616,11 @@ function Room() {
                 )}
                 <div ref={chatEndRef} />
               </div>
-
+ 
               <div className="px-3 h-5 text-xs text-gray-500 shrink-0">
                 {typingUser && typingUser !== username ? `${typingUser} is typing...` : ""}
               </div>
-
+ 
               <div className="flex gap-2 p-3 border-t border-white/15 shrink-0">
                 <input
                   type="text"
@@ -644,7 +644,7 @@ function Room() {
     </div>
   );
 }
-
+ 
 function PillButton({
   onClick,
   label,
@@ -662,7 +662,7 @@ function PillButton({
     green: "bg-emerald-600 hover:bg-emerald-500",
     red: "bg-red-600 hover:bg-red-500",
   };
-
+ 
   return (
     <button
       onClick={onClick}
@@ -673,5 +673,5 @@ function PillButton({
     </button>
   );
 }
-
+ 
 export default Room;
