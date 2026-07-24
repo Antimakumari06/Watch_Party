@@ -170,6 +170,21 @@ function Room() {
     setMessage("");
   };
 
+  // 🆕 ================= ROLE MANAGEMENT (Host only) =================
+
+  const promoteToModerator = (userId: string) => {
+    socket.emit("assign-role", { roomId, userId, role: "Moderator" });
+  };
+
+  const demoteToParticipant = (userId: string) => {
+    socket.emit("assign-role", { roomId, userId, role: "Participant" });
+  };
+
+  const removeParticipant = (userId: string, targetUsername: string) => {
+    if (!confirm(`${targetUsername} ko room se remove karna hai?`)) return;
+    socket.emit("remove-participant", { roomId, userId });
+  };
+
   useEffect(() => {
     if (!hasJoinedRef.current) {
       socket.emit("join-room", { roomId, username });
@@ -233,6 +248,23 @@ function Room() {
       setTypingUser(null);
     };
 
+    // 🆕 role assigned -> refresh participants list
+    const handleRoleAssigned = (data: { participants: Participant[] }) => {
+      setParticipants(data.participants);
+    };
+
+    // 🆕 someone was removed -> refresh participants list
+    const handleParticipantRemoved = (data: { participants: Participant[] }) => {
+      setParticipants(data.participants);
+    };
+
+    // 🆕 I was removed by the host -> kick myself out
+    const handleRemovedFromRoom = () => {
+      alert("🚫 Host ne tumhe is room se remove kar diya hai.");
+      leaveVoiceChat();
+      navigate("/");
+    };
+
     socket.on("voice-user-joined", async () => {
       if (!peerConnection.current) return;
       const offer = await peerConnection.current.createOffer();
@@ -277,6 +309,9 @@ function Room() {
     socket.on("sync-volume", handleSyncVolume);
     socket.on("user-typing", handleUserTyping);
     socket.on("user-stop-typing", handleUserStopTyping);
+    socket.on("role-assigned", handleRoleAssigned);
+    socket.on("participant-removed", handleParticipantRemoved);
+    socket.on("removed-from-room", handleRemovedFromRoom);
 
     return () => {
       socket.off("participants-update", handleParticipantsUpdate);
@@ -290,6 +325,9 @@ function Room() {
       socket.off("sync-volume", handleSyncVolume);
       socket.off("user-typing", handleUserTyping);
       socket.off("user-stop-typing", handleUserStopTyping);
+      socket.off("role-assigned", handleRoleAssigned);
+      socket.off("participant-removed", handleParticipantRemoved);
+      socket.off("removed-from-room", handleRemovedFromRoom);
 
       socket.off("voice-user-joined");
       socket.off("voice-offer");
@@ -306,6 +344,8 @@ function Room() {
 
   const me = participants.find((user) => user.username === username);
   const isHost = me?.role === "Host";
+  const isModerator = me?.role === "Moderator";
+  const canControl = isHost || isModerator; // 🆕 Host aur Moderator dono control kar sakte hain
 
   const copyRoomLink = async () => {
     try {
@@ -335,7 +375,6 @@ function Room() {
   };
 
   return (
-    // 🆕 page background ab bahut dark (near-black) — cards isse alag khade honge
     <div className="h-screen w-screen flex flex-col bg-black text-gray-100 overflow-hidden">
       {/* ===== TOP NAVBAR ===== */}
       <header className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#1a1a24] to-[#151520] border-b-2 border-violet-900/40 shrink-0 shadow-lg z-10">
@@ -349,7 +388,7 @@ function Room() {
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-300 hidden md:inline">
-            {isHost ? "👑" : "👤"} <b>{username}</b>
+            {isHost ? "👑" : isModerator ? "🛡️" : "👤"} <b>{username}</b>
           </span>
           <button
             onClick={copyRoomLink}
@@ -366,11 +405,12 @@ function Room() {
         </div>
       </header>
 
-      {/* ===== MAIN AREA — bada gap + padding taaki panels bilkul saaf alag dikhein ===== */}
+      {/* ===== MAIN AREA ===== */}
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-6 p-6 overflow-hidden">
         {/* ===== LEFT CARD: Video + Controls ===== */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 p-5 overflow-y-auto">
-          {isHost && (
+          {/* 🆕 Change video ab Host + Moderator dono ke liye */}
+          {canControl && (
             <div className="flex gap-2 mb-4">
               <input
                 type="text"
@@ -398,7 +438,8 @@ function Room() {
                   ignoreNextEvent.current = false;
                   return;
                 }
-                if (isHost && playerRef.current) {
+                // 🆕 Host ya Moderator dono broadcast kar sakte hain
+                if (canControl && playerRef.current) {
                   socket.emit("play", { roomId, currentTime: playerRef.current.getCurrentTime() });
                 }
               }}
@@ -407,12 +448,12 @@ function Room() {
                   ignoreNextEvent.current = false;
                   return;
                 }
-                if (isHost && playerRef.current) {
+                if (canControl && playerRef.current) {
                   socket.emit("pause", { roomId, currentTime: playerRef.current.getCurrentTime() });
                 }
               }}
               onStateChange={(event) => {
-                if (!isHost) return;
+                if (!canControl) return;
                 if (ignoreNextEvent.current) {
                   ignoreNextEvent.current = false;
                   return;
@@ -486,7 +527,7 @@ function Room() {
         </div>
 
         {/* ===== RIGHT CARD: Chat / Participants ===== */}
-        <div className="w-full lg:w-[360px] flex flex-col bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 shrink-0 min-h-0 overflow-hidden">
+        <div className="w-full lg:w-[380px] flex flex-col bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 shrink-0 min-h-0 overflow-hidden">
           <div className="flex border-b border-white/15 shrink-0">
             <button
               onClick={() => setShowParticipants(false)}
@@ -507,12 +548,45 @@ function Room() {
           </div>
 
           {showParticipants ? (
+            // 🆕 Participants list with Host-only role management controls
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {participants.map((user) => (
-                <div key={user.id} className="flex items-center gap-2 bg-[#0f0f16] border border-white/10 rounded-lg px-3 py-2.5 text-sm">
-                  <span>{user.role === "Host" ? "👑" : "👤"}</span>
-                  <span className="font-medium">{user.username}</span>
-                  <span className="text-xs text-gray-500 ml-auto">{user.role}</span>
+                <div
+                  key={user.id}
+                  className="flex flex-col gap-2 bg-[#0f0f16] border border-white/10 rounded-lg px-3 py-2.5 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{user.role === "Host" ? "👑" : user.role === "Moderator" ? "🛡️" : "👤"}</span>
+                    <span className="font-medium">{user.username}</span>
+                    <span className="text-xs text-gray-500 ml-auto">{user.role}</span>
+                  </div>
+
+                  {/* 🆕 Host ko har participant/moderator (khud ko chhodkar) ke neeche action buttons dikhte hain */}
+                  {isHost && user.role !== "Host" && (
+                    <div className="flex gap-2 pt-1 border-t border-white/5">
+                      {user.role === "Participant" ? (
+                        <button
+                          onClick={() => promoteToModerator(user.id)}
+                          className="flex-1 bg-blue-600 hover:bg-blue-500 transition text-xs px-2 py-1.5 rounded-md font-medium"
+                        >
+                          🛡️ Make Moderator
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => demoteToParticipant(user.id)}
+                          className="flex-1 bg-gray-600 hover:bg-gray-500 transition text-xs px-2 py-1.5 rounded-md font-medium"
+                        >
+                          👤 Remove Moderator
+                        </button>
+                      )}
+                      <button
+                        onClick={() => removeParticipant(user.id, user.username)}
+                        className="flex-1 bg-red-600 hover:bg-red-500 transition text-xs px-2 py-1.5 rounded-md font-medium"
+                      >
+                        🚫 Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
