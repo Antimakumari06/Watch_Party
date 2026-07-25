@@ -15,6 +15,13 @@ interface ChatMessage {
   time: string;
 }
  
+const EMOJIS = [
+  "😀", "😂", "😍", "😎", "🤔", "😢", "😡", "😱",
+  "👍", "👎", "👏", "🙌", "🙏", "💪", "🔥", "✨",
+  "🎉", "🎬", "🍿", "❤️", "💯", "😴", "🤣", "😅",
+  "🥳", "😮", "👀", "🤝", "😭", "🙄", "😏", "👌",
+];
+ 
 function Room() {
   const { roomId } = useParams();
   const location = useLocation();
@@ -28,8 +35,10 @@ function Room() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
   const [typingUser, setTypingUser] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
  
   const [videoId, setVideoId] = useState("dQw4w9WgXcQ");
   const [videoUrl, setVideoUrl] = useState("");
@@ -167,7 +176,24 @@ function Room() {
     socket.emit("send-message", { roomId, username, message });
     socket.emit("stop-typing", { roomId, username });
     setMessage("");
+    setShowEmojiPicker(false);
   };
+ 
+  const insertEmoji = (emoji: string) => {
+    setMessage((prev) => prev + emoji);
+  };
+ 
+  // Close emoji picker on outside click
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showEmojiPicker]);
  
   // ================= ROLE MANAGEMENT (Host only) =================
  
@@ -266,7 +292,7 @@ function Room() {
       setParticipants(data.participants);
     };
  
-    // 🆕 Host transferred — refresh list; if I'm the new host or the old host, my badge updates automatically
+    // Host transferred — refresh list; if I'm the new host or the old host, my badge updates automatically
     const handleHostTransferred = (data: {
       newHostUsername: string;
       participants: Participant[];
@@ -400,13 +426,15 @@ function Room() {
   };
  
   return (
-    <div className="h-screen w-screen flex flex-col bg-black text-gray-100 overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-[#0a0a0a] text-gray-100 overflow-hidden">
       {/* ===== TOP NAVBAR ===== */}
-      <header className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#1a1a24] to-[#151520] border-b-2 border-violet-900/40 shrink-0 shadow-lg z-10">
+      <header className="flex items-center justify-between px-6 py-3.5 bg-gradient-to-r from-[#141414] to-[#0a0a0a] border-b border-white/10 shrink-0 shadow-lg z-10">
         <div className="flex items-center gap-2.5">
           <span className="text-2xl">🎬</span>
-          <span className="font-bold text-lg tracking-tight">Watch Party</span>
-          <span className="text-xs text-gray-400 ml-3 hidden sm:inline bg-white/10 px-2.5 py-1 rounded-md">
+          <span className="font-bold text-lg tracking-tight">
+            Watch<span className="text-red-600">Party</span>
+          </span>
+          <span className="text-xs text-gray-500 ml-3 hidden sm:inline bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
             Room #{roomId?.slice(0, 8)}
           </span>
         </div>
@@ -417,7 +445,7 @@ function Room() {
           </span>
           <button
             onClick={copyRoomLink}
-            className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 transition px-3.5 py-2 rounded-lg text-sm font-medium shadow-md"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 transition px-3.5 py-2 rounded-lg text-sm font-medium border border-white/10"
           >
             📋 <span className="hidden sm:inline">Copy Link</span>
           </button>
@@ -433,7 +461,7 @@ function Room() {
       {/* ===== MAIN AREA ===== */}
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-6 p-6 overflow-hidden">
         {/* ===== LEFT CARD: Video + Controls ===== */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 p-5 overflow-y-auto">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#141414] rounded-2xl border border-white/10 shadow-2xl p-5 overflow-y-auto">
           {canControl && (
             <div className="flex gap-2 mb-4">
               <input
@@ -442,18 +470,18 @@ function Room() {
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleChangeVideo()}
-                className="flex-1 bg-[#0f0f16] border border-white/15 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500"
+                className="flex-1 bg-[#0a0a0a] border border-white/15 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-red-600"
               />
               <button
                 onClick={handleChangeVideo}
-                className="bg-orange-600 hover:bg-orange-500 transition px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap shadow-md"
+                className="bg-red-600 hover:bg-red-500 transition px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap shadow-md"
               >
                 🎬 Change Video
               </button>
             </div>
           )}
  
-          <div className="w-full rounded-2xl overflow-hidden bg-black shadow-lg aspect-video border border-white/10">
+          <div className="w-full rounded-xl overflow-hidden bg-black shadow-lg aspect-video border border-white/10">
             <YouTube
               videoId={videoId}
               onReady={onReady}
@@ -491,7 +519,7 @@ function Room() {
           </div>
  
           {/* Volume row */}
-          <div className="flex items-center gap-3 mt-4 bg-[#0f0f16] border border-white/15 rounded-xl px-4 py-3 w-fit">
+          <div className="flex items-center gap-3 mt-4 bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 w-fit">
             <button onClick={toggleVideoMute} className="text-lg">
               {videoMuted ? "🔇" : "🔊"}
             </button>
@@ -501,15 +529,15 @@ function Room() {
               max={100}
               value={volume}
               onChange={(e) => handleVolumeChange(Number(e.target.value))}
-              className="w-32 accent-violet-500"
+              className="w-32 accent-red-600"
             />
             <span className="text-xs text-gray-400 w-8">{volume}%</span>
           </div>
  
           {/* Bottom pill controls */}
-          <div className="flex items-center flex-wrap justify-center gap-2 mt-4 bg-[#0f0f16] border border-white/15 rounded-full px-5 py-3 mx-auto shadow-md">
-            <PillButton onClick={startVoiceChat} label="Voice Chat" icon="🎙️" color="blue" />
-            <PillButton onClick={startVideoCall} label="Camera" icon="📷" color="orange" />
+          <div className="flex items-center flex-wrap justify-center gap-2 mt-4 bg-[#0a0a0a] border border-white/10 rounded-full px-5 py-3 mx-auto shadow-md">
+            <PillButton onClick={startVoiceChat} label="Voice Chat" icon="🎙️" color="neutral" />
+            <PillButton onClick={startVideoCall} label="Camera" icon="📷" color="neutral" />
             <PillButton onClick={toggleMic} label={micOn ? "Mic ON" : "Mic OFF"} icon={micOn ? "🎤" : "🔇"} color={micOn ? "green" : "red"} />
             <PillButton onClick={toggleCamera} label={cameraOn ? "Camera ON" : "Camera OFF"} icon={cameraOn ? "📹" : "📷"} color={cameraOn ? "green" : "red"} />
             <PillButton onClick={leaveVoiceChat} label="Leave Call" icon="🔌" color="red" />
@@ -524,7 +552,7 @@ function Room() {
                 autoPlay
                 muted
                 playsInline
-                className="w-64 rounded-xl border-2 border-violet-500 shadow-lg"
+                className="w-64 rounded-xl border-2 border-red-600 shadow-lg"
               />
             </div>
           )}
@@ -550,20 +578,20 @@ function Room() {
         </div>
  
         {/* ===== RIGHT CARD: Chat / Participants ===== */}
-        <div className="w-full lg:w-[380px] flex flex-col bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 shrink-0 min-h-0 overflow-hidden">
-          <div className="flex border-b border-white/15 shrink-0">
+        <div className="w-full lg:w-[360px] flex flex-col bg-[#141414] rounded-2xl border border-white/10 shadow-2xl shrink-0 min-h-0 overflow-hidden">
+          <div className="flex border-b border-white/10 shrink-0">
             <button
               onClick={() => setShowParticipants(false)}
-              className={`flex-1 py-3 text-sm font-medium transition ${
-                !showParticipants ? "text-white border-b-2 border-violet-500 bg-white/10" : "text-gray-500 hover:text-gray-300"
+              className={`flex-1 py-2.5 text-sm font-medium transition ${
+                !showParticipants ? "text-white border-b-2 border-red-600 bg-white/5" : "text-gray-500 hover:text-gray-300"
               }`}
             >
               💬 Chat
             </button>
             <button
               onClick={() => setShowParticipants(true)}
-              className={`flex-1 py-3 text-sm font-medium transition ${
-                showParticipants ? "text-white border-b-2 border-violet-500 bg-white/10" : "text-gray-500 hover:text-gray-300"
+              className={`flex-1 py-2.5 text-sm font-medium transition ${
+                showParticipants ? "text-white border-b-2 border-red-600 bg-white/5" : "text-gray-500 hover:text-gray-300"
               }`}
             >
               👥 Participants ({participants.length})
@@ -575,7 +603,7 @@ function Room() {
               {participants.map((user) => (
                 <div
                   key={user.id}
-                  className="flex flex-col gap-2.5 bg-[#0f0f16] border border-white/10 rounded-xl px-3.5 py-3 text-sm transition hover:border-white/20"
+                  className="flex flex-col gap-2.5 bg-[#0a0a0a] border border-white/10 rounded-xl px-3.5 py-3 text-sm transition hover:border-white/20"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar username={user.username} />
@@ -623,32 +651,40 @@ function Room() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0">
+              {/* Compact chat feed */}
+              <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5 min-h-0">
                 {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-2">
-                    <span className="text-3xl">💬</span>
-                    <p className="text-sm">No messages yet. Say hi!</p>
+                  <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-1.5">
+                    <span className="text-2xl">💬</span>
+                    <p className="text-xs">No messages yet. Say hi!</p>
                   </div>
                 ) : (
                   messages.map((msg, index) => {
                     const isMe = msg.username === username;
+                    const prevMsg = messages[index - 1];
+                    const sameAuthorAsPrev = prevMsg && prevMsg.username === msg.username;
                     return (
-                      <div key={index} className={`flex gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-                        {!isMe && <Avatar username={msg.username} size="sm" />}
-                        <div className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
-                          {!isMe && (
-                            <span className="text-[11px] text-gray-500 mb-0.5 px-1">{msg.username}</span>
+                      <div
+                        key={index}
+                        className={`flex gap-1.5 ${isMe ? "flex-row-reverse" : "flex-row"} ${
+                          sameAuthorAsPrev ? "mt-0.5" : "mt-2"
+                        }`}
+                      >
+                        {!isMe && !sameAuthorAsPrev && <Avatar username={msg.username} size="sm" />}
+                        {!isMe && sameAuthorAsPrev && <div className="w-6 shrink-0" />}
+                        <div className={`flex flex-col max-w-[78%] ${isMe ? "items-end" : "items-start"}`}>
+                          {!isMe && !sameAuthorAsPrev && (
+                            <span className="text-[10px] text-gray-500 mb-0.5 px-1">{msg.username}</span>
                           )}
                           <div
-                            className={`px-3.5 py-2 text-sm break-words shadow-sm ${
+                            className={`px-2.5 py-1.5 text-[13px] leading-snug break-words ${
                               isMe
-                                ? "bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-2xl rounded-br-md"
-                                : "bg-[#22222c] border border-white/10 text-gray-200 rounded-2xl rounded-bl-md"
+                                ? "bg-red-600 text-white rounded-2xl rounded-br-sm"
+                                : "bg-[#242424] text-gray-200 rounded-2xl rounded-bl-sm"
                             }`}
                           >
                             {msg.message}
                           </div>
-                          <span className="text-[10px] text-gray-600 mt-0.5 px-1">{msg.time}</span>
                         </div>
                       </div>
                     );
@@ -657,32 +693,56 @@ function Room() {
                 <div ref={chatEndRef} />
               </div>
  
-              <div className="px-4 h-5 text-xs text-violet-400 shrink-0 flex items-center gap-1">
+              <div className="px-4 h-4 text-[11px] text-red-400 shrink-0 flex items-center gap-1">
                 {typingUser && typingUser !== username && (
                   <>
                     <span className="flex gap-0.5">
-                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
+                      <span className="w-1 h-1 bg-red-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1 h-1 bg-red-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1 h-1 bg-red-400 rounded-full animate-bounce" />
                     </span>
                     {typingUser} is typing
                   </>
                 )}
               </div>
  
-              <div className="flex gap-2 p-3 border-t border-white/15 shrink-0">
+              {/* Emoji picker */}
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className="mx-3 mb-2 p-2.5 bg-[#0a0a0a] border border-white/15 rounded-xl grid grid-cols-8 gap-1 shadow-xl"
+                >
+                  {EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => insertEmoji(emoji)}
+                      className="text-lg hover:bg-white/10 rounded-md py-1 transition"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+ 
+              <div className="flex gap-2 p-3 border-t border-white/10 shrink-0">
+                <button
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  className="w-9 h-9 shrink-0 rounded-full bg-[#0a0a0a] border border-white/15 hover:border-white/30 transition flex items-center justify-center text-base"
+                >
+                  😊
+                </button>
                 <input
                   type="text"
                   placeholder="Type a message..."
                   value={message}
                   onChange={(e) => handleTyping(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  className="flex-1 bg-[#0f0f16] border border-white/15 rounded-full px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition"
+                  className="flex-1 bg-[#0a0a0a] border border-white/15 rounded-full px-4 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:border-red-600 transition"
                 />
                 <button
                   onClick={sendMessage}
                   disabled={!message.trim()}
-                  className="bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md"
+                  className="bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-md"
                 >
                   ➤
                 </button>
@@ -698,14 +758,14 @@ function Room() {
 // Deterministic color per username, so the same person always gets the same avatar color
 function stringToColor(str: string) {
   const colors = [
-    "bg-violet-600",
+    "bg-red-600",
     "bg-pink-600",
     "bg-blue-600",
     "bg-emerald-600",
     "bg-orange-600",
     "bg-cyan-600",
     "bg-fuchsia-600",
-    "bg-red-600",
+    "bg-amber-600",
   ];
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -734,11 +794,10 @@ function PillButton({
   onClick: () => void;
   label: string;
   icon: string;
-  color: "blue" | "orange" | "green" | "red";
+  color: "neutral" | "green" | "red";
 }) {
   const colors: Record<string, string> = {
-    blue: "bg-blue-600 hover:bg-blue-500",
-    orange: "bg-orange-600 hover:bg-orange-500",
+    neutral: "bg-white/10 hover:bg-white/20 border border-white/10",
     green: "bg-emerald-600 hover:bg-emerald-500",
     red: "bg-red-600 hover:bg-red-500",
   };
