@@ -184,12 +184,18 @@ function Room() {
     socket.emit("remove-participant", { roomId, userId });
   };
  
+  // 🆕 Transfer Host — irreversible from current user's side, so confirm first
+  const transferHost = (userId: string, targetUsername: string) => {
+    if (
+      !confirm(
+        `Host role ${targetUsername} ko transfer karna hai? Tum khud Participant ban jaoge.`
+      )
+    )
+      return;
+    socket.emit("transfer-host", { roomId, userId });
+  };
+ 
   useEffect(() => {
-    // 🆕 RECONNECT-SAFE JOIN:
-    // Pehli baar connect hone pe bhi, aur baad mein kabhi bhi socket
-    // reconnect ho (jaise Render free-tier spin-down/network drop ke baad)
-    // to bhi "join-room" dobara bhejo — taaki server ke paas hamesha
-    // current/valid socket id ho, aur role kabhi galti se reset na ho.
     const handleConnect = () => {
       socket.emit("join-room", { roomId, username });
     };
@@ -260,6 +266,17 @@ function Room() {
       setParticipants(data.participants);
     };
  
+    // 🆕 Host transferred — refresh list; if I'm the new host or the old host, my badge updates automatically
+    const handleHostTransferred = (data: {
+      newHostUsername: string;
+      participants: Participant[];
+    }) => {
+      setParticipants(data.participants);
+      if (data.newHostUsername === username) {
+        alert("👑 Tum ab is room ke Host ho!");
+      }
+    };
+ 
     const handleParticipantRemoved = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
@@ -315,6 +332,7 @@ function Room() {
     socket.on("user-typing", handleUserTyping);
     socket.on("user-stop-typing", handleUserStopTyping);
     socket.on("role-assigned", handleRoleAssigned);
+    socket.on("host-transferred", handleHostTransferred);
     socket.on("participant-removed", handleParticipantRemoved);
     socket.on("removed-from-room", handleRemovedFromRoom);
  
@@ -332,6 +350,7 @@ function Room() {
       socket.off("user-typing", handleUserTyping);
       socket.off("user-stop-typing", handleUserStopTyping);
       socket.off("role-assigned", handleRoleAssigned);
+      socket.off("host-transferred", handleHostTransferred);
       socket.off("participant-removed", handleParticipantRemoved);
       socket.off("removed-from-room", handleRemovedFromRoom);
  
@@ -565,7 +584,7 @@ function Room() {
                   </div>
  
                   {isHost && user.role !== "Host" && (
-                    <div className="flex gap-2 pt-1 border-t border-white/5">
+                    <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
                       {user.role === "Participant" ? (
                         <button
                           onClick={() => promoteToModerator(user.id)}
@@ -581,6 +600,13 @@ function Room() {
                           👤 Remove Moderator
                         </button>
                       )}
+                      {/* 🆕 Transfer Host button */}
+                      <button
+                        onClick={() => transferHost(user.id, user.username)}
+                        className="flex-1 bg-yellow-600 hover:bg-yellow-500 transition text-xs px-2 py-1.5 rounded-md font-medium"
+                      >
+                        👑 Make Host
+                      </button>
                       <button
                         onClick={() => removeParticipant(user.id, user.username)}
                         className="flex-1 bg-red-600 hover:bg-red-500 transition text-xs px-2 py-1.5 rounded-md font-medium"

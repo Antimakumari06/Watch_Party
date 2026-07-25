@@ -103,13 +103,9 @@ io.on("connection", (socket) => {
     const existsBySocket = rooms[roomId].participants.find(
       (user) => user.id === socket.id
     );
-    if (existsBySocket) return; // already joined with this exact socket, nothing to do
+    if (existsBySocket) return;
  
-    // 🆕 RECONNECT-SAFE JOIN:
-    // Agar isi username ka koi purana (stale, ex: Render spin-down ke baad
-    // reconnect hua) entry pehle se list mein hai, to uska socket id
-    // refresh kar do, role (Host/Moderator) bilkul waisa hi rehne do —
-    // isse duplicate participant nahi banega aur role reset nahi hoga.
+    // Reconnect-safe join: reuse existing role if this username already has an entry
     const staleEntry = rooms[roomId].participants.find(
       (user) => user.username === username
     );
@@ -118,7 +114,6 @@ io.on("connection", (socket) => {
       console.log(`♻️ Reconnected: ${username} (old id -> new id)`);
       staleEntry.id = socket.id;
     } else {
-      // First-ever participant becomes Host, everyone else Participant
       const role =
         rooms[roomId].participants.length === 0 ? "Host" : "Participant";
  
@@ -264,6 +259,36 @@ io.on("connection", (socket) => {
     });
   });
  
+  // 🆕 ================= TRANSFER HOST (Host only) =================
+ 
+  socket.on("transfer-host", ({ roomId, userId }) => {
+    // Only the current Host can transfer their own role away
+    if (!isHost(roomId, socket.id)) return;
+ 
+    const room = rooms[roomId];
+    if (!room) return;
+ 
+    const currentHost = room.participants.find((p) => p.id === socket.id);
+    const newHost = room.participants.find((p) => p.id === userId);
+ 
+    if (!currentHost || !newHost) return;
+    if (newHost.role === "Host") return; // already host, nothing to do
+ 
+    // Swap roles: previous Host becomes a Participant, target becomes Host
+    currentHost.role = "Participant";
+    newHost.role = "Host";
+ 
+    console.log(
+      `👑 Host transferred: ${currentHost.username} -> ${newHost.username}`
+    );
+ 
+    io.to(roomId).emit("host-transferred", {
+      newHostId: newHost.id,
+      newHostUsername: newHost.username,
+      participants: room.participants,
+    });
+  });
+ 
   // ================= REMOVE PARTICIPANT (Host only) =================
  
   socket.on("remove-participant", ({ roomId, userId }) => {
@@ -279,13 +304,11 @@ io.on("connection", (socket) => {
  
     console.log(`🚫 Removed ${targetUser.username} from room ${roomId}`);
  
-    // Pehle remaining room ko updated list bhejo
     io.to(roomId).emit("participant-removed", {
       userId,
       participants: room.participants,
     });
  
-    // Phir removed user ko specifically notify karo aur unhe room se nikaalo
     const targetSocket = io.sockets.sockets.get(userId);
     if (targetSocket) {
       targetSocket.emit("removed-from-room", { roomId });
