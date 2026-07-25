@@ -42,7 +42,6 @@ function Room() {
   const [videoMuted, setVideoMuted] = useState(false);
   const [volume, setVolume] = useState(100);
  
-  const hasJoinedRef = useRef(false);
   const playerRef = useRef<any>(null);
   const ignoreNextEvent = useRef(false);
   const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -170,7 +169,7 @@ function Room() {
     setMessage("");
   };
  
-  // 🆕 ================= ROLE MANAGEMENT (Host only) =================
+  // ================= ROLE MANAGEMENT (Host only) =================
  
   const promoteToModerator = (userId: string) => {
     socket.emit("assign-role", { roomId, userId, role: "Moderator" });
@@ -186,10 +185,19 @@ function Room() {
   };
  
   useEffect(() => {
-    if (!hasJoinedRef.current) {
+    // 🆕 RECONNECT-SAFE JOIN:
+    // Pehli baar connect hone pe bhi, aur baad mein kabhi bhi socket
+    // reconnect ho (jaise Render free-tier spin-down/network drop ke baad)
+    // to bhi "join-room" dobara bhejo — taaki server ke paas hamesha
+    // current/valid socket id ho, aur role kabhi galti se reset na ho.
+    const handleConnect = () => {
       socket.emit("join-room", { roomId, username });
-      hasJoinedRef.current = true;
+    };
+ 
+    if (socket.connected) {
+      handleConnect();
     }
+    socket.on("connect", handleConnect);
  
     const handleParticipantsUpdate = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
@@ -248,17 +256,14 @@ function Room() {
       setTypingUser(null);
     };
  
-    // 🆕 role assigned -> refresh participants list
     const handleRoleAssigned = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
  
-    // 🆕 someone was removed -> refresh participants list
     const handleParticipantRemoved = (data: { participants: Participant[] }) => {
       setParticipants(data.participants);
     };
  
-    // 🆕 I was removed by the host -> kick myself out
     const handleRemovedFromRoom = () => {
       alert("🚫 Host ne tumhe is room se remove kar diya hai.");
       leaveVoiceChat();
@@ -314,6 +319,7 @@ function Room() {
     socket.on("removed-from-room", handleRemovedFromRoom);
  
     return () => {
+      socket.off("connect", handleConnect);
       socket.off("participants-update", handleParticipantsUpdate);
       socket.off("play", handlePlay);
       socket.off("pause", handlePause);
@@ -345,7 +351,7 @@ function Room() {
   const me = participants.find((user) => user.username === username);
   const isHost = me?.role === "Host";
   const isModerator = me?.role === "Moderator";
-  const canControl = isHost || isModerator; // 🆕 Host aur Moderator dono control kar sakte hain
+  const canControl = isHost || isModerator;
  
   const copyRoomLink = async () => {
     try {
@@ -409,7 +415,6 @@ function Room() {
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-6 p-6 overflow-hidden">
         {/* ===== LEFT CARD: Video + Controls ===== */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#1a1a24] rounded-3xl border-2 border-violet-900/30 shadow-2xl shadow-violet-950/50 p-5 overflow-y-auto">
-          {/* 🆕 Change video ab Host + Moderator dono ke liye */}
           {canControl && (
             <div className="flex gap-2 mb-4">
               <input
@@ -438,7 +443,6 @@ function Room() {
                   ignoreNextEvent.current = false;
                   return;
                 }
-                // 🆕 Host ya Moderator dono broadcast kar sakte hain
                 if (canControl && playerRef.current) {
                   socket.emit("play", { roomId, currentTime: playerRef.current.getCurrentTime() });
                 }
@@ -548,7 +552,6 @@ function Room() {
           </div>
  
           {showParticipants ? (
-            // 🆕 Participants list with Host-only role management controls
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {participants.map((user) => (
                 <div
@@ -561,7 +564,6 @@ function Room() {
                     <span className="text-xs text-gray-500 ml-auto">{user.role}</span>
                   </div>
  
-                  {/* 🆕 Host ko har participant/moderator (khud ko chhodkar) ke neeche action buttons dikhte hain */}
                   {isHost && user.role !== "Host" && (
                     <div className="flex gap-2 pt-1 border-t border-white/5">
                       {user.role === "Participant" ? (
