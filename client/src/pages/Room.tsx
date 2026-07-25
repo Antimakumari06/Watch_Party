@@ -83,9 +83,9 @@ function Room() {
     } catch (err: any) {
       console.error(err);
       if (err.name === "NotAllowedError") {
-        alert("❌ Mic access blocked. Address bar ke 🔒 icon se microphone allow karo, phir reload karo.");
+        alert("❌ Mic access blocked. Click the 🔒 icon in the address bar to allow microphone access, then reload the page.");
       } else if (err.name === "NotFoundError") {
-        alert("❌ Koi microphone nahi mila. Device check karo.");
+        alert("❌ No microphone found. Please check your device.");
       } else {
         alert("❌ Microphone error: " + err.message);
       }
@@ -180,15 +180,15 @@ function Room() {
   };
  
   const removeParticipant = (userId: string, targetUsername: string) => {
-    if (!confirm(`${targetUsername} ko room se remove karna hai?`)) return;
+    if (!confirm(`Remove ${targetUsername} from the room?`)) return;
     socket.emit("remove-participant", { roomId, userId });
   };
  
-  // 🆕 Transfer Host — irreversible from current user's side, so confirm first
+  // Transfer Host — irreversible from current user's side, so confirm first
   const transferHost = (userId: string, targetUsername: string) => {
     if (
       !confirm(
-        `Host role ${targetUsername} ko transfer karna hai? Tum khud Participant ban jaoge.`
+        `Transfer Host role to ${targetUsername}? You will become a Participant yourself.`
       )
     )
       return;
@@ -273,7 +273,7 @@ function Room() {
     }) => {
       setParticipants(data.participants);
       if (data.newHostUsername === username) {
-        alert("👑 Tum ab is room ke Host ho!");
+        alert("👑 You are now the Host of this room!");
       }
     };
  
@@ -282,7 +282,7 @@ function Room() {
     };
  
     const handleRemovedFromRoom = () => {
-      alert("🚫 Host ne tumhe is room se remove kar diya hai.");
+      alert("🚫 The Host has removed you from this room.");
       leaveVoiceChat();
       navigate("/");
     };
@@ -575,16 +575,20 @@ function Room() {
               {participants.map((user) => (
                 <div
                   key={user.id}
-                  className="flex flex-col gap-2 bg-[#0f0f16] border border-white/10 rounded-lg px-3 py-2.5 text-sm"
+                  className="flex flex-col gap-2.5 bg-[#0f0f16] border border-white/10 rounded-xl px-3.5 py-3 text-sm transition hover:border-white/20"
                 >
-                  <div className="flex items-center gap-2">
-                    <span>{user.role === "Host" ? "👑" : user.role === "Moderator" ? "🛡️" : "👤"}</span>
-                    <span className="font-medium">{user.username}</span>
-                    <span className="text-xs text-gray-500 ml-auto">{user.role}</span>
+                  <div className="flex items-center gap-3">
+                    <Avatar username={user.username} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium truncate">{user.username}</span>
+                      <span className="text-[11px] text-gray-500 flex items-center gap-1">
+                        {user.role === "Host" ? "👑" : user.role === "Moderator" ? "🛡️" : "👤"} {user.role}
+                      </span>
+                    </div>
                   </div>
  
                   {isHost && user.role !== "Host" && (
-                    <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
                       {user.role === "Participant" ? (
                         <button
                           onClick={() => promoteToModerator(user.id)}
@@ -600,7 +604,6 @@ function Room() {
                           👤 Remove Moderator
                         </button>
                       )}
-                      {/* 🆕 Transfer Host button */}
                       <button
                         onClick={() => transferHost(user.id, user.username)}
                         className="flex-1 bg-yellow-600 hover:bg-yellow-500 transition text-xs px-2 py-1.5 rounded-md font-medium"
@@ -620,23 +623,32 @@ function Room() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+              <div className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0">
                 {messages.length === 0 ? (
-                  <p className="text-center text-gray-600 text-sm mt-6">No messages yet.</p>
+                  <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-2">
+                    <span className="text-3xl">💬</span>
+                    <p className="text-sm">No messages yet. Say hi!</p>
+                  </div>
                 ) : (
                   messages.map((msg, index) => {
                     const isMe = msg.username === username;
                     return (
-                      <div key={index} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                        <span className="text-[11px] text-gray-500 mb-0.5 px-1">
-                          {msg.username} · {msg.time}
-                        </span>
-                        <div
-                          className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words ${
-                            isMe ? "bg-violet-600 text-white rounded-br-sm" : "bg-[#0f0f16] border border-white/10 text-gray-200 rounded-bl-sm"
-                          }`}
-                        >
-                          {msg.message}
+                      <div key={index} className={`flex gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                        {!isMe && <Avatar username={msg.username} size="sm" />}
+                        <div className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
+                          {!isMe && (
+                            <span className="text-[11px] text-gray-500 mb-0.5 px-1">{msg.username}</span>
+                          )}
+                          <div
+                            className={`px-3.5 py-2 text-sm break-words shadow-sm ${
+                              isMe
+                                ? "bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-2xl rounded-br-md"
+                                : "bg-[#22222c] border border-white/10 text-gray-200 rounded-2xl rounded-bl-md"
+                            }`}
+                          >
+                            {msg.message}
+                          </div>
+                          <span className="text-[10px] text-gray-600 mt-0.5 px-1">{msg.time}</span>
                         </div>
                       </div>
                     );
@@ -645,8 +657,17 @@ function Room() {
                 <div ref={chatEndRef} />
               </div>
  
-              <div className="px-3 h-5 text-xs text-gray-500 shrink-0">
-                {typingUser && typingUser !== username ? `${typingUser} is typing...` : ""}
+              <div className="px-4 h-5 text-xs text-violet-400 shrink-0 flex items-center gap-1">
+                {typingUser && typingUser !== username && (
+                  <>
+                    <span className="flex gap-0.5">
+                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-bounce" />
+                    </span>
+                    {typingUser} is typing
+                  </>
+                )}
               </div>
  
               <div className="flex gap-2 p-3 border-t border-white/15 shrink-0">
@@ -656,11 +677,12 @@ function Room() {
                   value={message}
                   onChange={(e) => handleTyping(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  className="flex-1 bg-[#0f0f16] border border-white/15 rounded-full px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500"
+                  className="flex-1 bg-[#0f0f16] border border-white/15 rounded-full px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition"
                 />
                 <button
                   onClick={sendMessage}
-                  className="bg-violet-600 hover:bg-violet-500 transition w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md"
+                  disabled={!message.trim()}
+                  className="bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md"
                 >
                   ➤
                 </button>
@@ -669,6 +691,36 @@ function Room() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+ 
+// Deterministic color per username, so the same person always gets the same avatar color
+function stringToColor(str: string) {
+  const colors = [
+    "bg-violet-600",
+    "bg-pink-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-orange-600",
+    "bg-cyan-600",
+    "bg-fuchsia-600",
+    "bg-red-600",
+  ];
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+ 
+function Avatar({ username, size = "md" }: { username: string; size?: "sm" | "md" }) {
+  const dimension = size === "sm" ? "w-6 h-6 text-[10px]" : "w-9 h-9 text-sm";
+  return (
+    <div
+      className={`${dimension} ${stringToColor(
+        username
+      )} rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-sm`}
+    >
+      {username.charAt(0).toUpperCase()}
     </div>
   );
 }
