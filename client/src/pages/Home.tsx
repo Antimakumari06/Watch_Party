@@ -98,7 +98,7 @@ function Home() {
             </div>
  
             {/* stats */}
-            <div id="features" className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-10 p-6 border border-white/10 rounded-2xl bg-white/[0.02]">
+            <div id="features" className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-16 p-6 border border-white/10 rounded-2xl bg-white/[0.02]">
               <Stat value="10K+" label="Active Users" color="text-violet-400" />
               <Stat value="5K+" label="Rooms Created" color="text-pink-400" />
               <Stat value="99.9%" label="Sync Accuracy" color="text-emerald-400" />
@@ -107,7 +107,7 @@ function Home() {
           </div>
  
           {/* Right column - form card, visually separated from hero text via its own border/bg */}
-          <div id="how" className="w-full lg:w-[440px] shrink-0 bg-[#13111c] border border-violet-500/40 rounded-3xl shadow-[0_0_60px_-10px_rgba(168,85,247,0.35)] p-10 sm:p-11">
+          <div id="how" className="w-full lg:w-[440px] shrink-0 min-h-[700px] flex flex-col bg-[#13111c] border border-violet-500/40 rounded-3xl shadow-[0_0_60px_-10px_rgba(168,85,247,0.35)] p-10 sm:p-12">
             <div className="text-center">
               <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-4xl shadow-lg shadow-violet-900/40 mb-5">
                 🎬
@@ -116,7 +116,7 @@ function Home() {
               <p className="text-gray-400 text-sm mt-2">Create a new room or join an existing one</p>
             </div>
  
-            <div className="mt-9">
+            <div className="mt-10 flex-1 flex flex-col">
               <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Username</label>
               <input
                 type="text"
@@ -129,52 +129,52 @@ function Home() {
                 onKeyDown={(e) => e.key === "Enter" && createRoom()}
                 className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
               />
-            </div>
  
-            {error && (
-              <p className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
-                ⚠️ {error}
-              </p>
-            )}
+              {error && (
+                <p className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                  ⚠️ {error}
+                </p>
+              )}
  
-            <button
-              onClick={createRoom}
-              className="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              🚀 Create New Room
-            </button>
+              <button
+                onClick={createRoom}
+                className="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                🚀 Create New Room
+              </button>
  
-            <div className="flex items-center my-7">
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="mx-4 text-gray-500 text-xs font-medium tracking-widest">OR</span>
-              <div className="flex-1 h-px bg-white/10" />
-            </div>
+              <div className="flex items-center my-8">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="mx-4 text-gray-500 text-xs font-medium tracking-widest">OR</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
  
-            <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Room ID</label>
-            <input
-              type="text"
-              placeholder="Paste Room ID"
-              value={roomId}
-              onChange={(e) => {
-                setRoomId(e.target.value);
-                if (error) setError("");
-              }}
-              onKeyDown={(e) => e.key === "Enter" && joinRoom()}
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
-            />
+              <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Room ID</label>
+              <input
+                type="text"
+                placeholder="Paste Room ID"
+                value={roomId}
+                onChange={(e) => {
+                  setRoomId(e.target.value);
+                  if (error) setError("");
+                }}
+                onKeyDown={(e) => e.key === "Enter" && joinRoom()}
+                className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+              />
  
-            <button
-              onClick={joinRoom}
-              className="mt-6 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              🟢 Join Room
-            </button>
+              <button
+                onClick={joinRoom}
+                className="mt-6 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                🟢 Join Room
+              </button>
  
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-7 pt-6 border-t border-white/10">
-              <Tag icon="💬" label="Live Chat" />
-              <Tag icon="🎥" label="HD Quality" />
-              <Tag icon="🎙" label="Voice Chat" />
-              <Tag icon="🔒" label="Secure" />
+              <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-auto pt-8 border-t border-white/10">
+                <Tag icon="💬" label="Live Chat" />
+                <Tag icon="🎥" label="HD Quality" />
+                <Tag icon="🎙" label="Voice Chat" />
+                <Tag icon="🔒" label="Secure" />
+              </div>
             </div>
           </div>
         </div>
