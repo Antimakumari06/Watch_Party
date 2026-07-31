@@ -107,16 +107,16 @@ function Home() {
           </div>
  
           {/* Right column - form card, visually separated from hero text via its own border/bg */}
-          <div id="how" className="w-full lg:w-[420px] shrink-0 bg-[#13111c] border border-violet-500/40 rounded-3xl shadow-[0_0_60px_-10px_rgba(168,85,247,0.35)] p-8 sm:p-9">
+          <div id="how" className="w-full lg:w-[440px] shrink-0 bg-[#13111c] border border-violet-500/40 rounded-3xl shadow-[0_0_60px_-10px_rgba(168,85,247,0.35)] p-10 sm:p-11">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-3xl shadow-lg shadow-violet-900/40 mb-4">
+              <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-4xl shadow-lg shadow-violet-900/40 mb-5">
                 🎬
               </div>
               <h2 className="text-2xl font-bold text-white">Start Your Watch Party</h2>
-              <p className="text-gray-400 text-sm mt-1">Create a new room or join an existing one</p>
+              <p className="text-gray-400 text-sm mt-2">Create a new room or join an existing one</p>
             </div>
  
-            <div className="mt-7">
+            <div className="mt-9">
               <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Username</label>
               <input
                 type="text"
@@ -127,7 +127,7 @@ function Home() {
                   if (error) setError("");
                 }}
                 onKeyDown={(e) => e.key === "Enter" && createRoom()}
-                className="mt-2 w-full px-5 py-3.5 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
               />
             </div>
  
@@ -139,12 +139,12 @@ function Home() {
  
             <button
               onClick={createRoom}
-              className="mt-5 w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               🚀 Create New Room
             </button>
  
-            <div className="flex items-center my-6">
+            <div className="flex items-center my-7">
               <div className="flex-1 h-px bg-white/10" />
               <span className="mx-4 text-gray-500 text-xs font-medium tracking-widest">OR</span>
               <div className="flex-1 h-px bg-white/10" />
@@ -160,17 +160,17 @@ function Home() {
                 if (error) setError("");
               }}
               onKeyDown={(e) => e.key === "Enter" && joinRoom()}
-              className="mt-2 w-full px-5 py-3.5 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+              className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
             />
  
             <button
               onClick={joinRoom}
-              className="mt-5 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="mt-6 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               🟢 Join Room
             </button>
  
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-6 pt-5 border-t border-white/10">
+            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-7 pt-6 border-t border-white/10">
               <Tag icon="💬" label="Live Chat" />
               <Tag icon="🎥" label="HD Quality" />
               <Tag icon="🎙" label="Voice Chat" />
