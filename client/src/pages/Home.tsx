@@ -29,17 +29,25 @@ function Home() {
   };
  
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-[#0a0a12] flex flex-col">
-      {/* ===== Background glow ===== */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] bg-violet-700 rounded-full blur-[200px] opacity-25 -top-52 -left-40" />
-        <div className="absolute w-[500px] h-[500px] bg-pink-600 rounded-full blur-[200px] opacity-20 top-1/4 -right-40" />
-        <div className="absolute w-[500px] h-[300px] bg-blue-600 rounded-full blur-[180px] opacity-10 bottom-0 left-1/3" />
+    <div className="relative min-h-screen w-full bg-black flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden">
+      {/* ===== Outer ambient background glow ===== */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute w-[700px] h-[700px] bg-violet-700 rounded-full blur-[220px] opacity-20 -top-60 -left-52" />
+        <div className="absolute w-[600px] h-[600px] bg-pink-600 rounded-full blur-[220px] opacity-15 -bottom-52 -right-40" />
+        <div className="absolute w-[500px] h-[500px] bg-blue-600 rounded-full blur-[220px] opacity-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
  
-      {/* ===== Navbar ===== */}
-      <nav className="relative z-20 w-full flex justify-center px-6 sm:px-10 py-5 border-b border-white/5">
-        <div className="w-full max-w-7xl flex items-center justify-between">
+      {/* ===== Contained dashboard panel ===== */}
+      <div className="relative z-10 w-full max-w-7xl rounded-3xl border border-white/10 bg-[#0a0a12] shadow-2xl shadow-black/60 overflow-hidden">
+        {/* ambient glow, clipped to panel */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute w-[500px] h-[500px] bg-violet-700 rounded-full blur-[180px] opacity-25 -top-40 -left-32" />
+          <div className="absolute w-[450px] h-[450px] bg-pink-600 rounded-full blur-[180px] opacity-20 top-10 -right-32" />
+          <div className="absolute w-[500px] h-[300px] bg-blue-600 rounded-full blur-[160px] opacity-10 bottom-0 left-1/3" />
+        </div>
+ 
+        {/* ===== Navbar ===== */}
+        <nav className="relative z-20 flex items-center justify-between px-6 sm:px-10 py-5 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-lg shadow-lg shadow-violet-900/40 shrink-0">
               🎬
@@ -66,19 +74,17 @@ function Home() {
           >
             🚀 Get Started
           </button>
-        </div>
-      </nav>
+        </nav>
  
-      {/* ===== Hero ===== */}
-      <div className="relative z-10 flex-1 w-full flex justify-center px-6 sm:px-10 py-14">
-        <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-14 items-start">
+        {/* ===== Hero ===== */}
+        <div className="relative z-10 px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-10 items-start">
           {/* Left column */}
-          <div className="w-full lg:flex-1 min-w-0">
+          <div className="min-w-0">
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-violet-300 text-xs font-semibold mb-6">
               ✨ The Ultimate Watch Party Experience
             </span>
  
-            <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-[1.05] tracking-tight">
               Watch YouTube
               <br />
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
@@ -86,19 +92,19 @@ function Home() {
               </span>
             </h1>
  
-            <p className="text-gray-400 mt-6 text-lg leading-relaxed max-w-md">
+            <p className="text-gray-400 mt-5 text-base sm:text-lg leading-relaxed max-w-md">
               Create your room, invite friends, and enjoy synchronized YouTube videos in real-time with live chat & voice.
             </p>
  
             {/* mini feature row */}
-            <div className="flex flex-wrap gap-6 mt-8">
+            <div className="flex flex-wrap gap-6 mt-7">
               <MiniFeature icon="👥" color="bg-violet-500/20 text-violet-300" title="Friends" subtitle="Invite Unlimited" />
               <MiniFeature icon="💬" color="bg-pink-500/20 text-pink-300" title="Live Chat" subtitle="Chat Together" />
               <MiniFeature icon="⚡" color="bg-emerald-500/20 text-emerald-300" title="Real-time Sync" subtitle="Perfect Sync" />
             </div>
  
             {/* stats */}
-            <div id="features" className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 pt-8 border-t border-white/10">
+            <div id="features" className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10 pt-7 border-t border-white/10">
               <Stat value="10K+" label="Active Users" color="text-violet-400" />
               <Stat value="5K+" label="Rooms Created" color="text-pink-400" />
               <Stat value="99.9%" label="Sync Accuracy" color="text-emerald-400" />
@@ -107,16 +113,16 @@ function Home() {
           </div>
  
           {/* Right column - form card */}
-          <div id="how" className="w-full lg:w-[440px] shrink-0 bg-[#13111c] border border-violet-500/30 rounded-3xl shadow-2xl shadow-violet-950/50 p-8 sm:p-9">
+          <div id="how" className="w-full bg-[#13111c] border border-violet-500/30 rounded-3xl shadow-xl shadow-violet-950/40 p-7 sm:p-8">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-3xl shadow-lg shadow-violet-900/40 mb-4">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-2xl shadow-lg shadow-violet-900/40 mb-3">
                 🎬
               </div>
-              <h2 className="text-2xl font-bold text-white">Start Your Watch Party</h2>
+              <h2 className="text-xl font-bold text-white">Start Your Watch Party</h2>
               <p className="text-gray-400 text-sm mt-1">Create a new room or join an existing one</p>
             </div>
  
-            <div className="mt-7">
+            <div className="mt-6">
               <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Username</label>
               <input
                 type="text"
@@ -127,7 +133,7 @@ function Home() {
                   if (error) setError("");
                 }}
                 onKeyDown={(e) => e.key === "Enter" && createRoom()}
-                className="mt-2 w-full px-5 py-3.5 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                className="mt-2 w-full px-4 py-3 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
               />
             </div>
  
@@ -139,12 +145,12 @@ function Home() {
  
             <button
               onClick={createRoom}
-              className="mt-5 w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide text-sm shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               🚀 Create New Room
             </button>
  
-            <div className="flex items-center my-6">
+            <div className="flex items-center my-5">
               <div className="flex-1 h-px bg-white/10" />
               <span className="mx-4 text-gray-500 text-xs font-medium tracking-widest">OR</span>
               <div className="flex-1 h-px bg-white/10" />
@@ -160,17 +166,17 @@ function Home() {
                 if (error) setError("");
               }}
               onKeyDown={(e) => e.key === "Enter" && joinRoom()}
-              className="mt-2 w-full px-5 py-3.5 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
+              className="mt-2 w-full px-4 py-3 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
             />
  
             <button
               onClick={joinRoom}
-              className="mt-5 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="mt-4 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide text-sm shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               🟢 Join Room
             </button>
  
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-6 pt-5 border-t border-white/10">
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-5 pt-4 border-t border-white/10">
               <Tag icon="💬" label="Live Chat" />
               <Tag icon="🎥" label="HD Quality" />
               <Tag icon="🎙" label="Voice Chat" />
@@ -178,11 +184,9 @@ function Home() {
             </div>
           </div>
         </div>
-      </div>
  
-      {/* ===== Footer ===== */}
-      <footer className="relative z-10 w-full flex justify-center border-t border-white/5 px-6 sm:px-10 py-6">
-        <div className="w-full max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
+        {/* ===== Footer ===== */}
+        <footer className="relative z-10 border-t border-white/5 px-6 sm:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
           <p>
             Made with <span className="text-pink-500">♥</span> by Watch Party Team
             <span className="mx-2">·</span>© 2026 Watch Party. All rights reserved.
@@ -193,8 +197,8 @@ function Home() {
             <a href="#" className="hover:text-white transition">GitHub</a>
             <a href="#" className="hover:text-white transition">YouTube</a>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
