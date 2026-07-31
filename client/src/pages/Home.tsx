@@ -29,7 +29,7 @@ function Home() {
   };
  
   return (
-    <div className="relative min-h-screen w-full bg-black flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden">
+    <div className="relative min-h-screen w-full bg-black flex items-center justify-center p-6 sm:p-10 lg:p-16 overflow-hidden">
       {/* ===== Outer ambient background glow ===== */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute w-[700px] h-[700px] bg-violet-700 rounded-full blur-[220px] opacity-20 -top-60 -left-52" />
@@ -38,7 +38,7 @@ function Home() {
       </div>
  
       {/* ===== Contained dashboard panel ===== */}
-      <div className="relative z-10 w-full max-w-7xl rounded-3xl border border-white/10 bg-[#0a0a12] shadow-2xl shadow-black/60 overflow-hidden">
+      <div className="relative z-10 w-full max-w-6xl mx-auto rounded-[28px] border border-white/10 bg-[#0a0a12] shadow-2xl shadow-black/60 overflow-hidden">
         {/* ambient glow, clipped to panel */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute w-[500px] h-[500px] bg-violet-700 rounded-full blur-[180px] opacity-25 -top-40 -left-32" />
@@ -77,7 +77,7 @@ function Home() {
         </nav>
  
         {/* ===== Hero ===== */}
-        <div className="relative z-10 px-6 sm:px-10 py-12 grid lg:grid-cols-[1fr_400px] gap-10 items-start">
+        <div className="relative z-10 px-6 sm:px-10 py-12 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-10 items-start">
           {/* Left column */}
           <div className="min-w-0">
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-violet-300 text-xs font-semibold mb-6">
@@ -186,12 +186,12 @@ function Home() {
         </div>
  
         {/* ===== Footer ===== */}
-        <footer className="relative z-10 border-t border-white/5 px-6 sm:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
-          <p>
+        <footer className="relative z-10 border-t border-white/5 px-6 sm:px-10 py-5 flex flex-wrap items-center justify-between gap-3 text-gray-500 text-sm">
+          <p className="min-w-0">
             Made with <span className="text-pink-500">♥</span> by Watch Party Team
             <span className="mx-2">·</span>© 2026 Watch Party. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 text-gray-400">
             <a href="#" className="hover:text-white transition">Discord</a>
             <a href="#" className="hover:text-white transition">Twitter</a>
             <a href="#" className="hover:text-white transition">GitHub</a>
