@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuid } from "uuid";
  
+type Tab = "create" | "join";
+ 
 function Home() {
   const navigate = useNavigate();
- 
   const [username, setUsername] = useState("");
   const [roomId, setRoomId] = useState("");
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<Tab>("create");
  
   const createRoom = () => {
     if (!username.trim()) {
@@ -15,8 +17,7 @@ function Home() {
       return;
     }
     setError("");
-    const newRoomId = uuid();
-    navigate(`/room/${newRoomId}`, { state: { username: username.trim() } });
+    navigate(`/room/${uuid()}`, { state: { username: username.trim() } });
   };
  
   const joinRoom = () => {
@@ -28,170 +29,150 @@ function Home() {
     navigate(`/room/${roomId.trim()}`, { state: { username: username.trim() } });
   };
  
+  const input =
+    "w-full h-12 px-4 rounded-xl bg-[#12101c] border border-[#2f2a47] text-white placeholder-[#7d7896] outline-none transition focus:border-[#ff5a4e] focus:ring-2 focus:ring-[#ff5a4e]/30";
+ 
   return (
-    <div className="relative min-h-screen w-full bg-[#0a0a12] flex flex-col overflow-x-hidden">
-      {/* ===== Background glow ===== */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] bg-violet-700 rounded-full blur-[200px] opacity-25 -top-52 -left-40" />
-        <div className="absolute w-[500px] h-[500px] bg-pink-600 rounded-full blur-[200px] opacity-20 top-1/4 -right-40" />
-        <div className="absolute w-[500px] h-[300px] bg-blue-600 rounded-full blur-[180px] opacity-10 bottom-0 left-1/3" />
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#12101c] text-[#f2eff9]">
+      {/* Header */}
+      <header className="border-b border-[#2f2a47]">
+        <div className="mx-auto max-w-6xl h-[72px] px-5 sm:px-7 flex items-center justify-between gap-6">
+          <a href="#" className="flex items-center gap-3 font-bold text-xl">
+            <span className="w-9 h-9 rounded-[10px] bg-[#ff5a4e] grid place-items-center">
+              <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-white">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+            Watch Party
+          </a>
  
-      {/* ===== Section 1: Navbar ===== */}
-      <nav className="relative z-20 w-full flex justify-center px-6 sm:px-10 py-5 border-b border-white/10 bg-black/20 backdrop-blur-sm">
-        <div className="w-full max-w-7xl flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-lg shadow-lg shadow-violet-900/40 shrink-0">
-              🎬
-            </div>
-            <div>
-              <p className="text-white font-bold leading-tight">Watch Party</p>
-              <p className="text-gray-500 text-[11px] leading-tight">Watch Together, Chat Together</p>
-            </div>
+          <nav className="hidden md:flex gap-8 text-[15px] font-medium text-[#a49fbb]">
+            <a href="#" className="text-white border-b-2 border-[#ff5a4e] py-1.5">Home</a>
+            <a href="#features" className="py-1.5 hover:text-white transition">Features</a>
+            <a href="#how" className="py-1.5 hover:text-white transition">How it works</a>
+            <a href="#faq" className="py-1.5 hover:text-white transition">FAQs</a>
+            <a href="#contact" className="py-1.5 hover:text-white transition">Contact</a>
+          </nav>
+ 
+          <a
+            href="#start"
+            className="h-10 px-4 inline-flex items-center rounded-xl border border-[#2f2a47] text-sm font-semibold hover:bg-[#242038] transition"
+          >
+            Get started
+          </a>
+        </div>
+      </header>
+ 
+      {/* Hero */}
+      <main className="flex-1 mx-auto w-full max-w-6xl px-5 sm:px-7 py-12 lg:py-20 grid lg:grid-cols-[1.1fr_480px] gap-12 lg:gap-[72px] items-center">
+        <section>
+          <h1 className="text-5xl sm:text-6xl font-bold leading-[1.05] tracking-tight max-w-[15ch]">
+            Watch YouTube with friends, in sync.
+          </h1>
+          <p className="mt-6 text-lg text-[#a49fbb] max-w-[46ch]">
+            Create a room, share the ID, and everyone sees the same video at the same second. Chat and talk while you watch.
+          </p>
+ 
+          <ul id="features" className="mt-10 grid gap-5 max-w-[46ch]">
+            <Feature title="Synced playback" text="Play, pause and seek stay in step for everyone in the room.">
+              <path d="M5 3l14 9-14 9z" />
+            </Feature>
+            <Feature title="Live chat" text="React to the video without leaving the page.">
+              <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" />
+            </Feature>
+            <Feature title="Voice chat" text="Talk to your friends while the video plays.">
+              <>
+                <rect x="9" y="3" width="6" height="12" rx="3" />
+                <path d="M5 11a7 7 0 0014 0M12 18v3" />
+              </>
+            </Feature>
+          </ul>
+        </section>
+ 
+        {/* Form card */}
+        <section id="start" className="bg-[#1b1829] border border-[#2f2a47] rounded-[20px] p-6 sm:p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)]">
+          <h2 className="text-[26px] font-bold leading-tight">Start your watch party</h2>
+          <p className="mt-1.5 text-[15px] text-[#a49fbb]">Enter your name, then create a room or join one.</p>
+ 
+          <div role="tablist" className="grid grid-cols-2 bg-[#242038] rounded-xl p-1 my-6">
+            {(["create", "join"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => { setTab(t); setError(""); }}
+                className={`h-10 rounded-[9px] text-sm font-semibold transition ${
+                  tab === t ? "bg-[#1b1829] text-white shadow" : "text-[#a49fbb] hover:text-white"
+                }`}
+              >
+                {t === "create" ? "Create room" : "Join room"}
+              </button>
+            ))}
           </div>
  
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-300 font-medium">
-            <a href="#" className="text-white relative pb-1 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-violet-500 after:to-pink-500">
-              Home
-            </a>
-            <a href="#features" className="hover:text-white transition">Features</a>
-            <a href="#how" className="hover:text-white transition">How It Works</a>
-            <a href="#" className="hover:text-white transition">FAQs</a>
-            <a href="#" className="hover:text-white transition">Contact</a>
+          <div className="grid gap-2 mb-5">
+            <label htmlFor="name" className="text-sm font-medium">Your name</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="e.g. Rahul"
+              value={username}
+              onChange={(e) => { setUsername(e.target.value); if (error) setError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && (tab === "create" ? createRoom() : joinRoom())}
+              className={input}
+            />
           </div>
+ 
+          {tab === "join" && (
+            <div className="grid gap-2 mb-5">
+              <label htmlFor="rid" className="text-sm font-medium">Room ID</label>
+              <input
+                id="rid"
+                type="text"
+                placeholder="Paste the Room ID"
+                value={roomId}
+                onChange={(e) => { setRoomId(e.target.value); if (error) setError(""); }}
+                onKeyDown={(e) => e.key === "Enter" && joinRoom()}
+                className={input}
+              />
+            </div>
+          )}
+ 
+          {error && (
+            <p role="alert" className="mb-5 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
  
           <button
-            onClick={createRoom}
-            className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl border border-violet-500/50 text-white text-sm font-semibold hover:bg-violet-600/20 transition shrink-0"
+            onClick={tab === "create" ? createRoom : joinRoom}
+            className="w-full h-12 rounded-xl bg-[#ff5a4e] text-white font-semibold transition hover:brightness-110 active:brightness-95"
           >
-            🚀 Get Started
+            {tab === "create" ? "Create room" : "Join room"}
           </button>
-        </div>
-      </nav>
+          {tab === "create" && (
+            <p className="mt-3 text-[13px] text-[#a49fbb]">You'll get a Room ID to share with friends.</p>
+          )}
  
-      {/* ===== Section 2: Hero ===== */}
-      <div className="relative z-10 flex-1 w-full flex justify-center px-6 sm:px-10 py-16">
-        <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-14 items-center">
-          {/* Left column */}
-          <div className="w-full lg:flex-1 min-w-0">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-violet-300 text-xs font-semibold mb-6">
-              ✨ The Ultimate Watch Party Experience
-            </span>
- 
-            <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
-              Watch YouTube
-              <br />
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
-                Together.
+          <div className="mt-6 pt-5 border-t border-[#2f2a47] flex flex-wrap justify-between gap-3 text-[13px] text-[#a49fbb]">
+            {["Private rooms", "Free to use", "No sign-up"].map((x) => (
+              <span key={x} className="inline-flex items-center gap-1.5">
+                <i className="w-1.5 h-1.5 rounded-full bg-[#3ddc97]" />
+                {x}
               </span>
-            </h1>
- 
-            <p className="text-gray-400 mt-6 text-lg leading-relaxed max-w-md">
-              Create your room, invite friends, and enjoy synchronized YouTube videos in real-time with live chat & voice.
-            </p>
- 
-            {/* mini feature row */}
-            <div className="flex flex-wrap gap-6 mt-8">
-              <MiniFeature icon="👥" color="bg-violet-500/20 text-violet-300" title="Friends" subtitle="Invite Unlimited" />
-              <MiniFeature icon="💬" color="bg-pink-500/20 text-pink-300" title="Live Chat" subtitle="Chat Together" />
-              <MiniFeature icon="⚡" color="bg-emerald-500/20 text-emerald-300" title="Real-time Sync" subtitle="Perfect Sync" />
-            </div>
- 
-            {/* stats */}
-            <div id="features" className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-16 p-6 border border-white/10 rounded-2xl bg-white/[0.02]">
-              <Stat value="10K+" label="Active Users" color="text-violet-400" />
-              <Stat value="5K+" label="Rooms Created" color="text-pink-400" />
-              <Stat value="99.9%" label="Sync Accuracy" color="text-emerald-400" />
-              <Stat value="100%" label="Secure Rooms" color="text-blue-400" />
-            </div>
+            ))}
           </div>
+        </section>
+      </main>
  
-          {/* Right column - form card, visually separated from hero text via its own border/bg */}
-          <div id="how" className="w-full lg:w-[440px] shrink-0 min-h-[700px] flex flex-col bg-[#13111c] border border-violet-500/40 rounded-3xl shadow-[0_0_60px_-10px_rgba(168,85,247,0.35)] p-10 sm:p-12">
-            <div className="text-center">
-              <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center text-4xl shadow-lg shadow-violet-900/40 mb-5">
-                🎬
-              </div>
-              <h2 className="text-2xl font-bold text-white">Start Your Watch Party</h2>
-              <p className="text-gray-400 text-sm mt-2">Create a new room or join an existing one</p>
-            </div>
- 
-            <div className="mt-10 flex-1 flex flex-col">
-              <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Username</label>
-              <input
-                type="text"
-                placeholder="Enter your name"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (error) setError("");
-                }}
-                onKeyDown={(e) => e.key === "Enter" && createRoom()}
-                className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
-              />
- 
-              {error && (
-                <p className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
-                  ⚠️ {error}
-                </p>
-              )}
- 
-              <button
-                onClick={createRoom}
-                className="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold tracking-wide shadow-lg shadow-violet-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                🚀 Create New Room
-              </button>
- 
-              <div className="flex items-center my-8">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="mx-4 text-gray-500 text-xs font-medium tracking-widest">OR</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
- 
-              <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">Room ID</label>
-              <input
-                type="text"
-                placeholder="Paste Room ID"
-                value={roomId}
-                onChange={(e) => {
-                  setRoomId(e.target.value);
-                  if (error) setError("");
-                }}
-                onKeyDown={(e) => e.key === "Enter" && joinRoom()}
-                className="mt-2 w-full px-5 py-4 rounded-xl bg-[#0f0f16] border border-white/15 text-white placeholder-gray-500 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30"
-              />
- 
-              <button
-                onClick={joinRoom}
-                className="mt-6 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-wide shadow-lg shadow-emerald-900/40 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                🟢 Join Room
-              </button>
- 
-              <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-auto pt-8 border-t border-white/10">
-                <Tag icon="💬" label="Live Chat" />
-                <Tag icon="🎥" label="HD Quality" />
-                <Tag icon="🎙" label="Voice Chat" />
-                <Tag icon="🔒" label="Secure" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
- 
-      {/* ===== Section 3: Footer ===== */}
-      <footer className="relative z-10 w-full flex justify-center border-t border-white/10 bg-black/20 backdrop-blur-sm px-6 sm:px-10 py-6">
-        <div className="w-full max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-sm">
-          <p>
-            Made with <span className="text-pink-500">♥</span> by Watch Party Team
-            <span className="mx-2">·</span>© 2026 Watch Party. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4 text-gray-400">
-            <a href="#" className="hover:text-white transition">Discord</a>
-            <a href="#" className="hover:text-white transition">Twitter</a>
-            <a href="#" className="hover:text-white transition">GitHub</a>
-            <a href="#" className="hover:text-white transition">YouTube</a>
+      {/* Footer */}
+      <footer id="contact" className="border-t border-[#2f2a47] py-6 text-sm text-[#a49fbb]">
+        <div className="mx-auto max-w-6xl px-5 sm:px-7 flex flex-col sm:flex-row justify-between gap-4">
+          <span>© 2026 Watch Party. All rights reserved.</span>
+          <div className="flex gap-6">
+            {["Discord", "Twitter", "GitHub", "YouTube"].map((l) => (
+              <a key={l} href="#" className="hover:text-white transition">{l}</a>
+            ))}
           </div>
         </div>
       </footer>
@@ -199,33 +180,19 @@ function Home() {
   );
 }
  
-function MiniFeature({ icon, color, title, subtitle }: { icon: string; color: string; title: string; subtitle: string }) {
+function Feature({ title, text, children }: { title: string; text: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${color}`}>{icon}</div>
+    <li className="flex gap-4 items-start">
+      <span className="shrink-0 w-10 h-10 rounded-[10px] bg-[#242038] grid place-items-center">
+        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-[#ff5a4e] stroke-2" strokeLinecap="round" strokeLinejoin="round">
+          {children}
+        </svg>
+      </span>
       <div>
-        <p className="text-white text-sm font-semibold leading-tight">{title}</p>
-        <p className="text-gray-500 text-xs leading-tight">{subtitle}</p>
+        <b className="block font-semibold">{title}</b>
+        <span className="text-[15px] text-[#a49fbb]">{text}</span>
       </div>
-    </div>
-  );
-}
- 
-function Stat({ value, label, color }: { value: string; label: string; color: string }) {
-  return (
-    <div>
-      <p className={`text-2xl sm:text-3xl font-extrabold ${color}`}>{value}</p>
-      <p className="text-gray-500 text-xs font-medium mt-1">{label}</p>
-    </div>
-  );
-}
- 
-function Tag({ icon, label }: { icon: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-      <span>{icon}</span>
-      {label}
-    </span>
+    </li>
   );
 }
  
